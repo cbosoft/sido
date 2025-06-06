@@ -1,14 +1,29 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod app_state;
+mod init_snd;
+
+use std::sync::Mutex;
+
+use tauri::{Builder, Manager, generate_context, generate_handler, State};
+
+use app_state::AppState;
+use init_snd::init_snd;
+
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust! Foo!", name)
+fn boop(state: State<'_, Mutex<AppState>>) {
+  let mut app = state.lock().unwrap();
+  app.boop();
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let (stream, net) = init_snd();
+    Builder::default()
+        .setup(move |app|{
+            app.manage(Mutex::new(AppState::new(net)));
+            Ok(())
+        })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
-        .run(tauri::generate_context!())
+        .invoke_handler(generate_handler![boop])
+        .run(generate_context!())
         .expect("error while running tauri application");
 }
