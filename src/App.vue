@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { invoke } from "@tauri-apps/api/core";
+
+// async function boop() {
+//   await invoke("boop");
+// }
 </script>
 
 <template>
   <main class="container">
-    hi hello
   </main>
 </template>
 
@@ -39,23 +42,26 @@ html, body {
 
 body {
   padding: 0;
-    /*background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);*/
-    background: linear-gradient(-45deg, #222838, #2b1f29, #3f2227, #2e2938, #1f2437);
-    background-size: 400% 400%;
-    animation: gradient 15s ease infinite;
-    overflow: hidden;
+  /*background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);*/
+  /* background: linear-gradient(-45deg, #222838, #2b1f29, #3f2227, #2e2938, #1f2437);*/
+  background: linear-gradient(-45deg,
+  #00030E, #251733, #0F2345, #0F1327, #00020F, #010411, #1A091C, #3A0C17, #5E201E
+  );
+  background-size: 400% 400%;
+  animation: gradient 15s ease-in-out infinite;
+  overflow: hidden;
 }
 
 @keyframes gradient {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
 }
 
 .logo {
