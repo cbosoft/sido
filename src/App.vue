@@ -1,15 +1,16 @@
 <script setup lang="ts">
   import Sequencer from "./components/Sequencer.vue";
-  import { invoke } from "@tauri-apps/api/core";
-
-  async function play_current_patch(n) {
-    await invoke("play_current_patch", { note: JSON.stringify({ note: "C" }) });
-  }
+  import PatchEditor from "./components/PatchEditor.vue";
 </script>
 
 <template>
   <main class="container">
+    <div class="widget-box">
+      <PatchEditor />
+    </div>
+    <div class="connector-v"></div>
     <Sequencer />
+    <div class="spacer-v"></div>
   </main>
 </template>
 
@@ -22,6 +23,24 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 50px;
+}
+.connector-v {
+  border: 2px solid #ddd;
+  border-top: none;
+  border-bottom: none;
+  width: 20px;
+  flex-grow: 0.1;
+  min-height: 20px;
+}
+.spacer-v {
+  height: 20px;
+}
+.widget-box {
+  width: 100%;
+  flex-grow: 1;
+  border: 2px solid #ddd;
+  position: relative;
 }
 </style>
 
