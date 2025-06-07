@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
   import { reactive, computed } from "vue";
 
   const data = reactive({
@@ -25,9 +25,27 @@
     return matrix;
   };
 
-  function toggle_note(note) {
+  async function toggle_note(note) {
     const { i, j, is_pressed } = note;
-    data.events[`${i}${j}`] = { i, j, is_pressed: !is_pressed };
+    const is_now_pressed = !is_pressed;
+    const event = { i, j, is_pressed: is_now_pressed };
+    data.events[`${i}${j}`] = event;
+    if (is_now_pressed) {
+      const note = event_to_note(event);
+      await play_current_patch(note);
+    }
+  }
+
+  function event_to_note(event) {
+    const i = event.i;
+    const j = event.j;
+    let note = {
+      note: ["C", "D", "E", "F", "G", "A", "B", "C"][7-j],
+      octave: 3 + (j == 0 ? 1 : 0),
+      position: i,
+      length: 1, // TODO!
+    };
+    return note;
   }
 
   function select_n_beats(nbeats) {
@@ -54,20 +72,56 @@
   }
 
   const matrix = computed(() => get_matrix());
+
+  import { invoke, Channel } from "@tauri-apps/api/core";
+
+  async function play_current_patch(note) {
+    note.position = 0;
+    await invoke("play_current_patch", { note });
+  }
+
+  function set_playing(i, w) {
+    for (const e of document.querySelectorAll('.division')) {
+      e.classList.remove('playing');
+    }
+    if (i < w) {
+      const e = document.getElementById(`d${i}`);
+      e.classList.add('playing');
+    }
+    else {
+      const e = document.getElementById(`play`);
+      e.classList.remove('playing');
+    }
+  }
+
+  async function play_sequence() {
+    const notes = [];
+    for (const [_, ev] of Object.entries(data.events)) {
+      const note = event_to_note(ev);
+      notes.push(note);
+    }
+    const timeInd = new Channel<number>();
+    const w = data.n_beats * data.n_divisions;
+    timeInd.onmessage = (i) => {
+      set_playing(i, w);
+    };
+
+    const e = document.getElementById(`play`);
+    e.classList.add('playing');
+    await invoke("play_sequence", { bpm: 140, beats: data.n_beats, divisions: data.n_divisions, notes, timeInd });
+  }
 </script>
 
 <template>
   <div class="sequencer-outer">
     <div class="sequencer">
-      <div class="greebles">
-        <div class="bl"></div>
-        <div class="r"></div>
-      </div>
       <div class="controls">
         <div class="divisions-selector">
           <div :class="`divisions-radio d${cfg} ${cfg==data.n_divisions ? 'selected' : ''}`" v-for="cfg in data.possible_divisions" @click="() => select_n_divisions(cfg)">
             <div class="division-circle" v-for="x in cfg"></div>
           </div>
+        </div>
+        <div id="play" @click="play_sequence">
         </div>
         <div class="beats-selector">
           <div :class="`beats-marker b${data.n_beats}`"></div>
@@ -75,7 +129,7 @@
         </div>
       </div>
       <div class="sequence">
-        <div class="division" v-for="(division, i) in matrix">
+        <div :id="`d${i}`" class="division" v-for="(division, i) in matrix">
           <div :class="`note ${note.is_pressed ? 'pressed' : ''} w${data.n_divisions*data.n_beats}`" v-for="note in division" @click="() => toggle_note(note)">
           </div>
         </div>
@@ -85,54 +139,35 @@
 </template>
 
 <style scoped>
-.greebles {
-  position: absolute;
-  inset: 0;
-  display: none;
-}
-.greebles .bl {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 30%;
-  height: 20%;
-  border: 2px solid #777;
-  margin: 25px;
-  border-right: none;
-  border-top: none;
-}
-.greebles .r {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  height: 30%;
-  border: 2px solid #777;
-  margin: auto;
-  margin-right: 25px;
-  border-bottom: none;
-  border-top: none;
-  border-left: none;
-}
 .sequencer-outer {
+}
+#play {
+  width: 40px;
+  height: 20px;
+  border-radius: 10px;
+  border: 2px solid #ddd;
+}
+#play.playing {
+  background-color: #ddd;
 }
 
 .sequencer {
   position: relative;
-  width: 1200px;
-  height: 600px;
+  width: 600px;
+  height: 350px;
   border: 2px solid #ddd;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 50px;
-  gap: 50px;
+  padding: 25px;
+  gap: 15px;
   transition: all 0.5s;
 }
 .controls {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
 }
 .sequence {
@@ -149,24 +184,28 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  border-radius: 5px;
+}
+.division.playing {
+  background-color: #ffffff33;
 }
 .note {
   flex-grow: 1;
 
   border: 2px solid #ddd;
   border-radius: 10%;
-  --w: 40px;
+  --w: 20px;
   width: var(--w);
   height: var(--w);
   margin: calc(var(--w)*0.25);
 }
 
-.note.w24 { --w: 30px; }
-.note.w32 { --w: 22px; }
-.note.w48 { --w: 12px; }
-.note.w64 { --w: 11px; border-width: 1px; }
+.note.w24 { --w: 15px; }
+.note.w32 { --w: 11px; }
+.note.w48 { --w: 6px; }
+.note.w64 { --w: 5px; border-width: 1px; }
 .note.pressed { background-color: #eee; }
-.note.pressed, .beats-circle, .division-circle {
+.note.pressed, .beats-circle, .division-circle, #play.playing, .division.playing {
   --blur-r: 20px;
   --glow-r: 2px;
   --glow-c: #eeeeffaa;

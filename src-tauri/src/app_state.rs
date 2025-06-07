@@ -1,5 +1,6 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use fundsp::hacker::*;
 use tauri::ipc::Channel;
@@ -54,12 +55,15 @@ impl AppState {
         }
 
         let mut now = 0u64;
+        time_ind.send(now).unwrap();
         while now < (end - 1) {
             let new_now = mark.load(Ordering::Relaxed);
             if new_now != now {
                 now = new_now;
-                time_ind.send(now);
+                time_ind.send(now).unwrap();
             }
+            std::thread::sleep(Duration::from_secs_f64(spd*0.1));
         }
+        time_ind.send(end).unwrap();
     }
 }
