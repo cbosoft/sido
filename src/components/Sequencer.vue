@@ -87,6 +87,7 @@
     if (i < w) {
       const e = document.getElementById(`d${i}`);
       e.classList.add('playing');
+      document.getElementById(`play`).classList.add('playing');
     }
     else {
       const e = document.getElementById(`play`);
@@ -95,6 +96,8 @@
   }
 
   async function play_sequence() {
+    // TODO: don't double play if clicked >1 time 
+
     const notes = [];
     for (const [_, ev] of Object.entries(data.events)) {
       const note = event_to_note(ev);
@@ -106,8 +109,7 @@
       set_playing(i, w);
     };
 
-    const e = document.getElementById(`play`);
-    e.classList.add('playing');
+    document.getElementById(`play`).classList.add('playing');
     await invoke("play_sequence", { bpm: 140, beats: data.n_beats, divisions: data.n_divisions, notes, timeInd });
   }
 </script>
