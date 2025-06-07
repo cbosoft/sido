@@ -6,6 +6,7 @@ mod patch;
 
 use std::sync::{Arc, Mutex};
 
+use patch::Patch;
 use tauri::{generate_context, generate_handler, ipc::Channel, Builder, Manager, State};
 
 use app_state::AppState;
@@ -38,6 +39,13 @@ fn play_sequence(state: State<'_, Arc<Mutex<AppState>>>, bpm: f64, beats: u64, d
 }
 
 
+#[tauri::command]
+fn set_patch(state: State<'_, Arc<Mutex<AppState>>>, patch: Patch) {
+    let mut app = state.lock().unwrap();
+    app.set_patch(patch);
+}
+
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let (stream, net) = init_snd();
@@ -50,7 +58,8 @@ pub fn run() {
         .invoke_handler(generate_handler![
             boop,
             play_current_patch,
-            play_sequence
+            play_sequence,
+            set_patch,
         ])
         .run(generate_context!())
         .expect("error while running tauri application");

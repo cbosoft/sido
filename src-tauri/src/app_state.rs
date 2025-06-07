@@ -66,4 +66,8 @@ impl AppState {
         }
         time_ind.send(end).unwrap();
     }
+
+    pub fn set_patch(&mut self, patch: Patch) {
+        self.patch = patch;
+    }
 }
