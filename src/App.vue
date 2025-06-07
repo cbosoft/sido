@@ -2,9 +2,9 @@
   import Sequencer from "./components/Sequencer.vue";
   import { invoke } from "@tauri-apps/api/core";
 
-  // async function boop() {
-  //   await invoke("boop");
-  // }
+  async function play_current_patch(n) {
+    await invoke("play_current_patch", { note: JSON.stringify({ note: "C" }) });
+  }
 </script>
 
 <template>

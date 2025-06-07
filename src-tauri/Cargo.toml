@@ -26,4 +26,5 @@ cpal = "0.15.3"
 fundsp = "0.20.0"
 anyhow = "1.0.98"
 assert_no_alloc = "1.1.2"
+serde_yaml = "0.9.34"
 
