@@ -8,9 +8,8 @@
     <div class="widget-box">
       <PatchEditor />
     </div>
-    <div class="connector-v"></div>
-    <Sequencer />
     <div class="spacer-v"></div>
+    <Sequencer />
   </main>
 </template>
 
@@ -26,15 +25,15 @@
   padding: 50px;
 }
 .connector-v {
-  border: 2px solid #ddd;
+  border-right: 2px solid #ddd;
   border-top: none;
   border-bottom: none;
-  width: 20px;
+  width: 0;
   flex-grow: 0.1;
   min-height: 20px;
 }
 .spacer-v {
-  height: 20px;
+  height: 50px;
 }
 .widget-box {
   width: 100%;
