@@ -5,7 +5,8 @@
     n_divisions: 4,
     n_beats: 4,
     possible_divisions: [1, 2, 4, 8, 16],
-    events: {}
+    events: {},
+    playing: false,
   });
 
   function get_matrix() {
@@ -86,6 +87,7 @@
   function set_playing(i, w) {
     for (const e of document.querySelectorAll('.division')) {
       e.classList.remove('playing');
+      data.playing = true;
     }
     if (i < w) {
       const e = document.getElementById(`d${i}`);
@@ -95,11 +97,15 @@
     else {
       const e = document.getElementById(`play`);
       e.classList.remove('playing');
+      data.playing = false;
     }
   }
 
   async function play_sequence() {
-    // TODO: don't double play if clicked >1 time 
+    // don't double play if clicked >1 time 
+    if (data.playing) {
+      return;
+    }
 
     const notes = [];
     for (const [_, ev] of Object.entries(data.events)) {
