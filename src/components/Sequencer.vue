@@ -27,10 +27,13 @@
 
   async function toggle_note(note) {
     const { i, j, is_pressed } = note;
-    const is_now_pressed = !is_pressed;
-    const event = { i, j, is_pressed: is_now_pressed };
-    data.events[`${i}${j}`] = event;
-    if (is_now_pressed) {
+    const k = `${i}${j}`;
+    if (is_pressed) {
+      delete data.events[k];
+    }
+    else {
+      const event = { i, j, is_pressed: true };
+      data.events[k] = event;
       const note = event_to_note(event);
       await play_current_patch(note);
     }
