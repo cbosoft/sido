@@ -13,26 +13,45 @@
   const data = reactive({
     patch: {
       nodes: {
-        freq: { name: 'freq', width: 5 },
-        osc1: { name: 'osc1' },
-        mux: { name: 'mux' },
-        ctl: { name: 'ctl' },
-        out: { name: 'out' }
+        freq: { reserved: true, name: "freq", kind: "Constant", value: "-" },
+        osc1: { kind: "Sine" },
+        mult: { kind: "MultChannels" },
+        ctl: { reserved: true, name: "ctl", kind: "Constant", value: "-" },
+        out: { reserved: true, name: 'out', kind: "Sink" }
       },
       edges: {
-        e1: { source: 'freq', target: 'osc1' },
-        e2: { source: 'osc1', target: 'mux' },
-        e3: { source: 'ctl', target: 'mux' },
-        e4: { source: 'mux', target: 'out' },
+        edge_freq_osc1: { source: 'freq', target: 'osc1' },
+        edge_osc1_mult: { source: 'osc1', target: 'mult' },
+        edge_ctl_mux: { source: 'ctl', target: 'mult' },
+        edge_mux_out: { source: 'mult', target: 'out' },
       }
     },
-    selected_node: null
+    selected_nodes: [],
+    selected_edges: [],
   });
 
   function update_patch() {
-    // get serable repr of patch
-    // send to backend
-    console.log(data.patch);
+    // serialisable patch network
+    const patch = {
+      nodes: {},
+      edges: [],
+    };
+    const node_connections = {}; // to track channels
+    for (const [k, v] of Object.entries(data.patch.nodes)) {
+      if (v.reserved) continue;
+      patch.nodes[k] = { op: v.kind };
+      node_connections[k] = 0;
+    }
+    for (const [_, edge] of Object.entries(data.patch.edges)) {
+      const source = edge.source;
+      const t_channel = node_connections[edge.target] ?? 0;
+      const target = `${edge.target}:${t_channel}`;
+      patch.edges.push([source, target]);
+      if (node_connections[edge.target] !== undefined) {
+        node_connections[edge.target] += 1;
+      }
+    }
+    set_patch(patch);
   }
 
   watch(data.patch, update_patch);
